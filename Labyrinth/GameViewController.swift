@@ -18,10 +18,8 @@
 //        x                 x
 //
 //  Notes:
-//  - marble doesn't fall through holes in board, since physics body/shape of board covers whole board (doesn't recognize holes)
-//  - I covered the board with kinematic panels (leaving the holes uncovered), adding them to scene.rootNode
-//    - marble doesn't fall through panels, but panels don't rotate with board
-//  - I tried adding the marble and panels to the boardNode, but everything appears squashed in the y-direction
+//  - only used the board mesh node from the .scn file for aesthetics, since the holes aren't recognized by the physics body/shape
+//  - created a separate board node to add mesh, marble, and panels (coving all but holes), since adding nodes to mesh node appear squashed
 //
 
 import UIKit
@@ -32,10 +30,13 @@ struct Constants {
     static let cameraDistance: CGFloat = 12
     static let boardThickness: CGFloat = 0.3
     static let marbleRadius: CGFloat = 0.25
+    static let panelColor = UIColor.clear
 }
 
 class GameViewController: UIViewController {
     
+    var boardNode: SCNNode!
+
     override var shouldAutorotate: Bool {
         return true
     }
@@ -54,41 +55,57 @@ class GameViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+                
+        let scnView = self.view as! SCNView
+        scnView.backgroundColor = UIColor.black
+        scnView.allowsCameraControl = true
+        scnView.showsStatistics = true
         
-        let scene = SCNScene(named: "art.scnassets/board.scn")!
+        let scnScene = SCNScene()
+        scnView.scene = scnScene
         
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
-        scene.rootNode.addChildNode(cameraNode)
+        scnScene.rootNode.addChildNode(cameraNode)
         rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: -.pi/2)  // top view
-//        rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: 0)  // front view
 
         let lightNode = SCNNode()
         lightNode.light = SCNLight()
         lightNode.light!.type = .omni
         lightNode.position = SCNVector3(x: 0, y: 10, z: 10)
-        scene.rootNode.addChildNode(lightNode)
+        scnScene.rootNode.addChildNode(lightNode)
         
         let ambientLightNode = SCNNode()
         ambientLightNode.light = SCNLight()
         ambientLightNode.light!.type = .ambient
         ambientLightNode.light!.color = UIColor.darkGray
-        scene.rootNode.addChildNode(ambientLightNode)
-        
-        let scnView = self.view as! SCNView
-        scnView.scene = scene
-        scnView.backgroundColor = UIColor.black
-        scnView.allowsCameraControl = true
-        scnView.showsStatistics = true
-//        scnView.debugOptions = .showPhysicsShapes  // pws: debugging ***************
-        
-        let boardNode = scene.rootNode.childNode(withName: "board", recursively: true)!  // board.dae | Node inspector | Identity | Name: board
-        boardNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
-//        boardNode.transform = SCNMatrix4Rotate(boardNode.transform, -0.005, 0, 0, 1)  // tip board to right
-        
-        createBoardPanel(x1: -3.7, x2: 0.87, z1: -3.7, z2: 3.7)
+        scnScene.rootNode.addChildNode(ambientLightNode)
+
+        let board = SCNBox(width: 7.4, height: Constants.boardThickness, length: 7.4, chamferRadius: 0)
+        board.firstMaterial?.diffuse.contents = UIColor.clear
+        boardNode = SCNNode(geometry: board)
+        boardNode.position = SCNVector3(x: 0, y: 0, z: 0)
+        boardNode.transform = SCNMatrix4Rotate(boardNode.transform, -0.02, 0, 0, 1)  // tip board to right
+        scnScene.rootNode.addChildNode(boardNode)
+
+        // extract board mesh from .scn file
+        let boardScene = SCNScene(named: "art.scnassets/board.scn")!
+        let boardMeshNode = boardScene.rootNode.childNode(withName: "board", recursively: true)!  // board.dae | Node inspector | Identity | Name: board
+        boardNode.addChildNode(boardMeshNode)
+
+        // cover board with kinematic panels (except for holes)
+        createBoardPanel(x1: -3.7, x2: -2.1, z1: -3.7, z2: 3.7)
+        createBoardPanel(x1: -2.1, x2: -1.53, z1: -3.7, z2: 1.94)
+        createBoardPanel(x1: -2.1, x2: -1.53, z1: 2.51, z2: 3.7)
+
+        createBoardPanel(x1: -1.53, x2: -1.0, z1: -3.7, z2: 3.7)
+        createBoardPanel(x1: -1.0, x2: -0.43, z1: -3.7, z2: -2.39)
+        createBoardPanel(x1: -1.0, x2: -0.43, z1: -1.82, z2: 3.7)
+
+        createBoardPanel(x1: -0.43, x2: 0.87, z1: -3.7, z2: 3.7)
         createBoardPanel(x1: 0.87, x2: 1.44, z1: -3.7, z2: 0.75)
         createBoardPanel(x1: 0.87, x2: 1.44, z1: 1.32, z2: 3.7)
+        
         createBoardPanel(x1: 1.44, x2: 3.7, z1: -3.7, z2: 3.7)
 
         let marble = SCNSphere(radius: Constants.marbleRadius)
@@ -96,17 +113,16 @@ class GameViewController: UIViewController {
         let marbleNode = SCNNode(geometry: marble)
         marbleNode.position = SCNVector3(x: 0, y: Float(Constants.boardThickness / 2 + Constants.marbleRadius), z: 1)
         marbleNode.physicsBody = SCNPhysicsBody(type: .dynamic, shape: nil)
-        scene.rootNode.addChildNode(marbleNode)
+        boardNode.addChildNode(marbleNode)
     }
     
     private func createBoardPanel(x1: Float, x2: Float, z1: Float, z2: Float) {
         let box = SCNBox(width: CGFloat(x2 - x1), height: Constants.boardThickness, length: CGFloat(z2 - z1), chamferRadius: 0)
-        box.firstMaterial?.diffuse.contents = UIColor.blue
+        box.firstMaterial?.diffuse.contents = Constants.panelColor
         let panelNode = SCNNode(geometry: box)
         panelNode.position = SCNVector3(x: (x1 + x2) / 2, y: 0, z: (z1 + z2) / 2)
         panelNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
-        let scnView = self.view as! SCNView
-        scnView.scene?.rootNode.addChildNode(panelNode)
+        boardNode.addChildNode(panelNode)
     }
 
     // rotate camera around board x-axis, while continuing to point at board center
