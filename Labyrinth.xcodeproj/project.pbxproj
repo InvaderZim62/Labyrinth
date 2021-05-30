@@ -54,10 +54,10 @@
 		4ADF90F22663EE2E002422B5 /* Labyrinth */ = {
 			isa = PBXGroup;
 			children = (
-				4ADF90F32663EE2E002422B5 /* AppDelegate.swift */,
-				4ADF90F52663EE2E002422B5 /* art.scnassets */,
-				4ADF90F72663EE2E002422B5 /* GameViewController.swift */,
 				4ADF90F92663EE2E002422B5 /* Main.storyboard */,
+				4ADF90F72663EE2E002422B5 /* GameViewController.swift */,
+				4ADF90F52663EE2E002422B5 /* art.scnassets */,
+				4ADF90F32663EE2E002422B5 /* AppDelegate.swift */,
 				4ADF90FC2663EE2F002422B5 /* Assets.xcassets */,
 				4ADF90FE2663EE2F002422B5 /* Info.plist */,
 			);
