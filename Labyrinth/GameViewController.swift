@@ -30,7 +30,9 @@ import CoreMotion
 struct Constants {
     static let cameraDistance: CGFloat = 12
     static let boardThickness: CGFloat = 0.3
-    static let marbleRadius: CGFloat = 0.25
+    static let marbleRadius: CGFloat = 0.23
+    static let holeRadius: Float = 0.285
+    static let boardEdge: Float = 3.7
     static let panelColor = UIColor.clear
 }
 
@@ -39,6 +41,9 @@ class GameViewController: UIViewController {
     var scnScene: SCNScene!
     var boardNode: SCNNode!
     let motionManager = CMMotionManager()  // needed for accelerometers
+    
+    let holeCentersX: [Float] = [-1.815, -0.715, 1.155]
+    let holeCentersZ: [Float] = [ 2.225, -2.105, 1.035]
 
     override var shouldAutorotate: Bool {
         return true
@@ -96,19 +101,7 @@ class GameViewController: UIViewController {
         boardNode.addChildNode(boardMeshNode)
 
         // cover board with kinematic panels (except for holes)
-        createBoardPanel(x1: -3.7, x2: -2.1, z1: -3.7, z2: 3.7)
-        createBoardPanel(x1: -2.1, x2: -1.53, z1: -3.7, z2: 1.94)
-        createBoardPanel(x1: -2.1, x2: -1.53, z1: 2.51, z2: 3.7)
-
-        createBoardPanel(x1: -1.53, x2: -1.0, z1: -3.7, z2: 3.7)
-        createBoardPanel(x1: -1.0, x2: -0.43, z1: -3.7, z2: -2.39)
-        createBoardPanel(x1: -1.0, x2: -0.43, z1: -1.82, z2: 3.7)
-
-        createBoardPanel(x1: -0.43, x2: 0.87, z1: -3.7, z2: 3.7)
-        createBoardPanel(x1: 0.87, x2: 1.44, z1: -3.7, z2: 0.75)
-        createBoardPanel(x1: 0.87, x2: 1.44, z1: 1.32, z2: 3.7)
-        
-        createBoardPanel(x1: 1.44, x2: 3.7, z1: -3.7, z2: 3.7)
+        createBoardPanels()
 
         let marble = SCNSphere(radius: Constants.marbleRadius)
         marble.firstMaterial?.diffuse.contents = UIColor.lightGray
@@ -135,6 +128,33 @@ class GameViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         motionManager.stopAccelerometerUpdates()
+    }
+    
+    private func createBoardPanels() {
+        var rightOfPriorHole = -Constants.boardEdge
+        for index in holeCentersX.indices {
+            // left of hole
+            createBoardPanel(x1: rightOfPriorHole,
+                             x2: holeCentersX[index] - Constants.holeRadius,
+                             z1: -Constants.boardEdge,
+                             z2: Constants.boardEdge)
+            // above hole
+            createBoardPanel(x1: holeCentersX[index] - Constants.holeRadius,
+                             x2: holeCentersX[index] + Constants.holeRadius,
+                             z1: -Constants.boardEdge,
+                             z2: holeCentersZ[index] - Constants.holeRadius)
+            // below hole
+            createBoardPanel(x1: holeCentersX[index] - Constants.holeRadius,
+                             x2: holeCentersX[index] + Constants.holeRadius,
+                             z1: holeCentersZ[index] + Constants.holeRadius,
+                             z2: Constants.boardEdge)
+            rightOfPriorHole = holeCentersX[index] + Constants.holeRadius
+        }
+        // right of last hole
+        createBoardPanel(x1: rightOfPriorHole,
+                         x2: Constants.boardEdge,
+                         z1: -Constants.boardEdge,
+                         z2: Constants.boardEdge)
     }
 
     private func createBoardPanel(x1: Float, x2: Float, z1: Float, z2: Float) {
