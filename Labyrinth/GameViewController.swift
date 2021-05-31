@@ -11,7 +11,7 @@
 //
 //  I converted board.dae to board.scn:  board.dae | Editor | Convert to ScneneKit file format
 //
-//  Blender axes      Xcode axes
+//  Blender axes    SceneKit axes
 //      z                 y
 //      |__ y         z __|
 //       \                 \
@@ -25,6 +25,7 @@
 import UIKit
 import QuartzCore
 import SceneKit
+import CoreMotion
 
 struct Constants {
     static let cameraDistance: CGFloat = 12
@@ -35,7 +36,9 @@ struct Constants {
 
 class GameViewController: UIViewController {
     
+    var scnScene: SCNScene!
     var boardNode: SCNNode!
+    let motionManager = CMMotionManager()  // needed for accelerometers
 
     override var shouldAutorotate: Bool {
         return true
@@ -61,13 +64,13 @@ class GameViewController: UIViewController {
         scnView.allowsCameraControl = true
         scnView.showsStatistics = true
         
-        let scnScene = SCNScene()
+        scnScene = SCNScene()
         scnView.scene = scnScene
         
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
         scnScene.rootNode.addChildNode(cameraNode)
-        rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: -.pi/2)  // top view
+        rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: -.pi/3)  // top view
 
         let lightNode = SCNNode()
         lightNode.light = SCNLight()
@@ -85,7 +88,6 @@ class GameViewController: UIViewController {
         board.firstMaterial?.diffuse.contents = UIColor.clear
         boardNode = SCNNode(geometry: board)
         boardNode.position = SCNVector3(x: 0, y: 0, z: 0)
-        boardNode.transform = SCNMatrix4Rotate(boardNode.transform, -0.02, 0, 0, 1)  // tip board to right
         scnScene.rootNode.addChildNode(boardNode)
 
         // extract board mesh from .scn file
@@ -115,7 +117,26 @@ class GameViewController: UIViewController {
         marbleNode.physicsBody = SCNPhysicsBody(type: .dynamic, shape: nil)
         boardNode.addChildNode(marbleNode)
     }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        // use accelerometers to determine direction of gravity
+        if motionManager.isAccelerometerAvailable {
+            motionManager.accelerometerUpdateInterval = 0.1
+            motionManager.startAccelerometerUpdates(to: .main) { (data, error) in
+                if let x = data?.acceleration.x, let y = data?.acceleration.y, let z = data?.acceleration.z {
+                    self.scnScene.physicsWorld.gravity = SCNVector3(x: 9.8 * Float(x), y: 9.8 * Float(z), z: 9.8 * Float(-y))
+                }
+            }
+        }
+    }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        motionManager.stopAccelerometerUpdates()
+    }
+
     private func createBoardPanel(x1: Float, x2: Float, z1: Float, z2: Float) {
         let box = SCNBox(width: CGFloat(x2 - x1), height: Constants.boardThickness, length: CGFloat(z2 - z1), chamferRadius: 0)
         box.firstMaterial?.diffuse.contents = Constants.panelColor
