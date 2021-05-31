@@ -29,10 +29,12 @@ import CoreMotion
 
 struct Constants {
     static let cameraDistance: CGFloat = 12
-    static let boardThickness: CGFloat = 0.3
+    static let boardSize: CGFloat = 7.46
+    static let boardThickness: CGFloat = 0.25
+    static let bumperThickness: CGFloat = 0.20
+    static let bumperWidth: CGFloat = 0.25
     static let marbleRadius: CGFloat = 0.23
-    static let holeRadius: Float = 0.285
-    static let boardEdge: Float = 3.7
+    static let holeRadius: CGFloat = 0.285
     static let panelColor = UIColor.clear
 }
 
@@ -42,8 +44,8 @@ class GameViewController: UIViewController {
     var boardNode: SCNNode!
     let motionManager = CMMotionManager()  // needed for accelerometers
     
-    let holeCentersX: [Float] = [-1.815, -0.715, 1.155]
-    let holeCentersZ: [Float] = [ 2.225, -2.105, 1.035]
+    let holeCentersX: [CGFloat] = [-1.815, -0.715, 1.155]
+    let holeCentersZ: [CGFloat] = [ 2.225, -2.105, 1.035]
 
     override var shouldAutorotate: Bool {
         return true
@@ -67,7 +69,7 @@ class GameViewController: UIViewController {
         let scnView = self.view as! SCNView
         scnView.backgroundColor = UIColor.black
         scnView.allowsCameraControl = true
-        scnView.showsStatistics = true
+        scnView.showsStatistics = false
         
         scnScene = SCNScene()
         scnView.scene = scnScene
@@ -75,7 +77,8 @@ class GameViewController: UIViewController {
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
         scnScene.rootNode.addChildNode(cameraNode)
-        rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: -.pi/3)  // top view
+        rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: -.pi/2)  // top view
+//        rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: -.pi/3)  // sciew view
 
         let lightNode = SCNNode()
         lightNode.light = SCNLight()
@@ -89,7 +92,10 @@ class GameViewController: UIViewController {
         ambientLightNode.light!.color = UIColor.darkGray
         scnScene.rootNode.addChildNode(ambientLightNode)
 
-        let board = SCNBox(width: 7.4, height: Constants.boardThickness, length: 7.4, chamferRadius: 0)
+        let board = SCNBox(width: Constants.boardSize,
+                           height: Constants.boardThickness,
+                           length: Constants.boardSize,
+                           chamferRadius: 0)
         board.firstMaterial?.diffuse.contents = UIColor.clear
         boardNode = SCNNode(geometry: board)
         boardNode.position = SCNVector3(x: 0, y: 0, z: 0)
@@ -102,6 +108,7 @@ class GameViewController: UIViewController {
 
         // cover board with kinematic panels (except for holes)
         createBoardPanels()
+        createBoardBumpers()
 
         let marble = SCNSphere(radius: Constants.marbleRadius)
         marble.firstMaterial?.diffuse.contents = UIColor.lightGray
@@ -131,39 +138,58 @@ class GameViewController: UIViewController {
     }
     
     private func createBoardPanels() {
-        var rightOfPriorHole = -Constants.boardEdge
+        var rightOfPriorHole = -Constants.boardSize / 2
         for index in holeCentersX.indices {
             // left of hole
             createBoardPanel(x1: rightOfPriorHole,
                              x2: holeCentersX[index] - Constants.holeRadius,
-                             z1: -Constants.boardEdge,
-                             z2: Constants.boardEdge)
+                             z1: -Constants.boardSize / 2,
+                             z2: Constants.boardSize / 2)
             // above hole
             createBoardPanel(x1: holeCentersX[index] - Constants.holeRadius,
                              x2: holeCentersX[index] + Constants.holeRadius,
-                             z1: -Constants.boardEdge,
+                             z1: -Constants.boardSize / 2,
                              z2: holeCentersZ[index] - Constants.holeRadius)
             // below hole
             createBoardPanel(x1: holeCentersX[index] - Constants.holeRadius,
                              x2: holeCentersX[index] + Constants.holeRadius,
                              z1: holeCentersZ[index] + Constants.holeRadius,
-                             z2: Constants.boardEdge)
+                             z2: Constants.boardSize / 2)
             rightOfPriorHole = holeCentersX[index] + Constants.holeRadius
         }
         // right of last hole
         createBoardPanel(x1: rightOfPriorHole,
-                         x2: Constants.boardEdge,
-                         z1: -Constants.boardEdge,
-                         z2: Constants.boardEdge)
+                         x2: Constants.boardSize / 2,
+                         z1: -Constants.boardSize / 2,
+                         z2: Constants.boardSize / 2)
     }
 
-    private func createBoardPanel(x1: Float, x2: Float, z1: Float, z2: Float) {
-        let box = SCNBox(width: CGFloat(x2 - x1), height: Constants.boardThickness, length: CGFloat(z2 - z1), chamferRadius: 0)
-        box.firstMaterial?.diffuse.contents = Constants.panelColor
-        let panelNode = SCNNode(geometry: box)
-        panelNode.position = SCNVector3(x: (x1 + x2) / 2, y: 0, z: (z1 + z2) / 2)
+    private func createBoardPanel(x1: CGFloat, x2: CGFloat, z1: CGFloat, z2: CGFloat) {
+        let panel = SCNBox(width: x2 - x1, height: Constants.boardThickness, length: z2 - z1, chamferRadius: 0)
+        panel.firstMaterial?.diffuse.contents = Constants.panelColor
+        let panelNode = SCNNode(geometry: panel)
+        panelNode.position = SCNVector3(x: Float(x1 + x2) / 2, y: 0, z: Float(z1 + z2) / 2)
         panelNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         boardNode.addChildNode(panelNode)
+    }
+    
+    private func createBoardBumpers() {
+        let halfBoardSize = Constants.boardSize / 2
+        createBoardBumper(x1: -halfBoardSize, x2: halfBoardSize, z1: -halfBoardSize, z2: -halfBoardSize + Constants.bumperWidth)  // top
+        createBoardBumper(x1: -halfBoardSize, x2: halfBoardSize, z1: halfBoardSize - Constants.bumperWidth, z2: halfBoardSize)  // bottom
+        createBoardBumper(x1: -halfBoardSize, x2: -halfBoardSize + Constants.bumperWidth, z1: -halfBoardSize + Constants.bumperWidth, z2: halfBoardSize - Constants.bumperWidth)  // left
+        createBoardBumper(x1: halfBoardSize - Constants.bumperWidth, x2: halfBoardSize, z1: -halfBoardSize + Constants.bumperWidth, z2: halfBoardSize - Constants.bumperWidth)  // right
+    }
+    
+    private func createBoardBumper(x1: CGFloat, x2: CGFloat, z1: CGFloat, z2: CGFloat) {
+        let bumper = SCNBox(width: x2 - x1, height: Constants.bumperThickness, length: z2 - z1, chamferRadius: 0)
+        bumper.firstMaterial?.diffuse.contents = #colorLiteral(red: 0.9764705896, green: 0.850980401, blue: 0.5490196347, alpha: 1)
+        let bumperNode = SCNNode(geometry: bumper)
+        bumperNode.position = SCNVector3(x: Float(x1 + x2) / 2,
+                                         y: Float(Constants.boardThickness + Constants.bumperThickness) / 2,
+                                         z: Float(z1 + z2) / 2)
+        bumperNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
+        boardNode.addChildNode(bumperNode)
     }
 
     // rotate camera around board x-axis, while continuing to point at board center
