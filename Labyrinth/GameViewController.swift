@@ -28,13 +28,14 @@ import SceneKit
 import CoreMotion
 
 struct Constants {
-    static let cameraDistance: CGFloat = 10
-    static let boardSize: CGFloat = 7.46
-    static let boardThickness: CGFloat = 0.25
-    static let bumperThickness: CGFloat = 0.20
-    static let bumperWidth: CGFloat = 0.25
-    static let marbleRadius: CGFloat = 0.23
-    static let holeRadius: CGFloat = 0.285
+    static let cameraDistance: CGFloat = 13.4  // portrait: 22.3
+    static let boardWidth: CGFloat = 16.9
+    static let boardHeight: CGFloat = 14.9
+    static let boardThickness: CGFloat = 0.1
+    static let bumperThickness: CGFloat = 0.3
+    static let bumperWidth: CGFloat = 0.5
+    static let marbleRadius: CGFloat = 0.32
+    static let holeRadius: CGFloat = 0.434
     static let panelColor = UIColor.clear
 }
 
@@ -92,9 +93,9 @@ class GameViewController: UIViewController {
         ambientLightNode.light!.color = UIColor.darkGray
         scnScene.rootNode.addChildNode(ambientLightNode)
 
-        let board = SCNBox(width: Constants.boardSize,
+        let board = SCNBox(width: Constants.boardWidth,
                            height: Constants.boardThickness,
-                           length: Constants.boardSize,
+                           length: Constants.boardHeight,
                            chamferRadius: 0)
         board.firstMaterial?.diffuse.contents = UIColor.clear
         boardNode = SCNNode(geometry: board)
@@ -126,7 +127,7 @@ class GameViewController: UIViewController {
             motionManager.accelerometerUpdateInterval = 0.1
             motionManager.startAccelerometerUpdates(to: .main) { (data, error) in
                 if let x = data?.acceleration.x, let y = data?.acceleration.y, let z = data?.acceleration.z {
-                    self.scnScene.physicsWorld.gravity = SCNVector3(x: 9.8 * Float(x), y: 9.8 * Float(z), z: 9.8 * Float(-y))
+                    self.scnScene.physicsWorld.gravity = SCNVector3(x: 9.8 * Float(y), y: 9.8 * Float(z), z: 9.8 * Float(x))
                 }
             }
         }
@@ -138,30 +139,30 @@ class GameViewController: UIViewController {
     }
     
     private func createBoardPanels() {
-        var rightOfPriorHole = -Constants.boardSize / 2
+        var rightOfPriorHole = -Constants.boardWidth / 2
         for index in holeCentersX.indices {
             // left of hole
             createBoardPanel(x1: rightOfPriorHole,
                              x2: holeCentersX[index] - Constants.holeRadius,
-                             z1: -Constants.boardSize / 2,
-                             z2: Constants.boardSize / 2)
+                             z1: -Constants.boardWidth / 2,
+                             z2: Constants.boardWidth / 2)
             // above hole
             createBoardPanel(x1: holeCentersX[index] - Constants.holeRadius,
                              x2: holeCentersX[index] + Constants.holeRadius,
-                             z1: -Constants.boardSize / 2,
+                             z1: -Constants.boardWidth / 2,
                              z2: holeCentersZ[index] - Constants.holeRadius)
             // below hole
             createBoardPanel(x1: holeCentersX[index] - Constants.holeRadius,
                              x2: holeCentersX[index] + Constants.holeRadius,
                              z1: holeCentersZ[index] + Constants.holeRadius,
-                             z2: Constants.boardSize / 2)
+                             z2: Constants.boardWidth / 2)
             rightOfPriorHole = holeCentersX[index] + Constants.holeRadius
         }
         // right of last hole
         createBoardPanel(x1: rightOfPriorHole,
-                         x2: Constants.boardSize / 2,
-                         z1: -Constants.boardSize / 2,
-                         z2: Constants.boardSize / 2)
+                         x2: Constants.boardWidth / 2,
+                         z1: -Constants.boardWidth / 2,
+                         z2: Constants.boardWidth / 2)
     }
 
     private func createBoardPanel(x1: CGFloat, x2: CGFloat, z1: CGFloat, z2: CGFloat) {
@@ -174,11 +175,12 @@ class GameViewController: UIViewController {
     }
     
     private func createBoardBumpers() {
-        let halfBoardSize = Constants.boardSize / 2
-        createBoardBumper(x1: -halfBoardSize, x2: halfBoardSize, z1: -halfBoardSize, z2: -halfBoardSize + Constants.bumperWidth)  // top
-        createBoardBumper(x1: -halfBoardSize, x2: halfBoardSize, z1: halfBoardSize - Constants.bumperWidth, z2: halfBoardSize)  // bottom
-        createBoardBumper(x1: -halfBoardSize, x2: -halfBoardSize + Constants.bumperWidth, z1: -halfBoardSize + Constants.bumperWidth, z2: halfBoardSize - Constants.bumperWidth)  // left
-        createBoardBumper(x1: halfBoardSize - Constants.bumperWidth, x2: halfBoardSize, z1: -halfBoardSize + Constants.bumperWidth, z2: halfBoardSize - Constants.bumperWidth)  // right
+        let halfBoardWidth = Constants.boardWidth / 2
+        let halfBoardHeight = Constants.boardHeight / 2
+        createBoardBumper(x1: -halfBoardWidth, x2: halfBoardWidth, z1: -halfBoardHeight, z2: -halfBoardHeight + Constants.bumperWidth)  // top
+        createBoardBumper(x1: -halfBoardWidth, x2: halfBoardWidth, z1: halfBoardHeight - Constants.bumperWidth, z2: halfBoardHeight)  // bottom
+        createBoardBumper(x1: -halfBoardWidth, x2: -halfBoardWidth + Constants.bumperWidth, z1: -halfBoardHeight + Constants.bumperWidth, z2: halfBoardHeight - Constants.bumperWidth)  // left
+        createBoardBumper(x1: halfBoardWidth - Constants.bumperWidth, x2: halfBoardWidth, z1: -halfBoardHeight + Constants.bumperWidth, z2: halfBoardHeight - Constants.bumperWidth)  // right
     }
     
     private func createBoardBumper(x1: CGFloat, x2: CGFloat, z1: CGFloat, z2: CGFloat) {
