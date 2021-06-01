@@ -28,7 +28,7 @@ import SceneKit
 import CoreMotion
 
 struct Constants {
-    static let cameraDistance: CGFloat = 12
+    static let cameraDistance: CGFloat = 10
     static let boardSize: CGFloat = 7.46
     static let boardThickness: CGFloat = 0.25
     static let bumperThickness: CGFloat = 0.20
