@@ -43,6 +43,7 @@ class GameViewController: UIViewController {
     
     var scnScene: SCNScene!
     var boardNode: SCNNode!
+    var marbleNode = SCNNode()
     let motionManager = CMMotionManager()  // needed for accelerometers
     
     // hole position relative to upper left corner of board
@@ -85,7 +86,8 @@ class GameViewController: UIViewController {
         scnView.backgroundColor = UIColor.black
         scnView.allowsCameraControl = true
         scnView.showsStatistics = false
-        
+        scnView.delegate = self  // needed to call renderer (extension, below)
+
         scnScene = SCNScene()
         scnView.scene = scnScene
         
@@ -127,7 +129,7 @@ class GameViewController: UIViewController {
 
         let marble = SCNSphere(radius: Constants.marbleRadius)
         marble.firstMaterial?.diffuse.contents = UIColor.lightGray
-        let marbleNode = SCNNode(geometry: marble)
+        marbleNode = SCNNode(geometry: marble)
         marbleNode.position = SCNVector3(x: 0, y: Float(Constants.boardThickness / 2 + Constants.marbleRadius), z: 1)
         marbleNode.physicsBody = SCNPhysicsBody(type: .dynamic, shape: nil)
         boardNode.addChildNode(marbleNode)
@@ -264,4 +266,17 @@ class GameViewController: UIViewController {
         let cameraAngle = CGFloat(cameraNode.eulerAngles.x)
         cameraNode.position = SCNVector3(0, -Constants.cameraDistance * sin(cameraAngle), Constants.cameraDistance * cos(cameraAngle))
     }
+    
+    private func restartMarbleIfFellThroughHole() {
+        if marbleNode.presentation.position.y < -10 {
+            marbleNode.position = SCNVector3(x: 0, y: Float(Constants.boardThickness / 2 + Constants.marbleRadius), z: 1)
+        }
+    }
 }
+
+extension GameViewController: SCNSceneRendererDelegate {  // set scnView.delegate = self
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        restartMarbleIfFellThroughHole()
+    }
+}
+
