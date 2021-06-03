@@ -128,7 +128,7 @@ class GameViewController: UIViewController {
         createBoardEdges()
 
         let marble = SCNSphere(radius: Constants.marbleRadius)
-        marble.firstMaterial?.diffuse.contents = UIColor.lightGray
+        marble.firstMaterial?.diffuse.contents = UIColor.white
         marbleNode = SCNNode(geometry: marble)
         marbleNode.position = SCNVector3(x: 0, y: Float(Constants.boardThickness / 2 + Constants.marbleRadius), z: 1)
         marbleNode.physicsBody = SCNPhysicsBody(type: .dynamic, shape: nil)
