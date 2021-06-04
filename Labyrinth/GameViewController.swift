@@ -47,7 +47,7 @@ struct Constants {
     static let boardHeight: CGFloat = 14.9
     static let boardThickness: CGFloat = 0.1
     static let edgeThickness: CGFloat = 0.36
-    static let edgeWidth: CGFloat = 0.5
+    static let edgeWidth: CGFloat = 0.8
     static let marbleRadius: CGFloat = 0.32
     static let holeRadius: CGFloat = 0.434
     static let barRadius: CGFloat = 0.18
@@ -55,7 +55,7 @@ struct Constants {
     static let boardColor = #colorLiteral(red: 0.9764705896, green: 0.850980401, blue: 0.5490196347, alpha: 1)  // used for edges and walls (actual board color is in "board image.png"
     static let startingPosition = SCNVector3(x: 0.7,
                                              y: Float(Constants.boardThickness / 2 + Constants.marbleRadius),
-                                             z: -Float(Constants.boardHeight / 2 - Constants.edgeWidth - Constants.marbleRadius))
+                                             z: Float(-Constants.boardHeight / 2 + Constants.edgeWidth + 1.5 * Constants.marbleRadius))
 }
 
 class GameViewController: UIViewController {
@@ -81,39 +81,39 @@ class GameViewController: UIViewController {
     
     // bar end points relative to upper left corner of board
     let verticalBarCenter: [CGFloat] = [
-        4.3, 9.7, 13.7, 15.0, 3.0, 4.3, 5.8, 7.0, 8.6, 12.5,
-        13.8, 15.1, 3.0, 4.4, 5.8, 8.5, 15.1, 1.9, 3.1, 4.4,
-        5.9, 7.1, 8.5, 12.5, 3.0, 9.6, 11.0, 13.7, 4.4, 6.0,
-        8.4, 12.4, 4.2, 7.0, 13.6
+        4.4, 9.7, 13.7, 15.0, 3.1, 4.4, 5.8, 7.0, 8.5, 12.5,
+        13.8, 15.0, 3.2, 4.4, 5.8, 8.5, 15.0, 1.9, 3.1, 4.4,
+        5.9, 7.1, 8.5, 12.5, 3.1, 9.6, 11.0, 13.7, 4.4, 5.8,
+        8.4, 12.4, 4.4, 7.0, 13.6
     ]
     
     let horizontalBarCenter: [CGFloat] = [
-        2.3, 1.9, 3.6, 3.1, 3.0, 4.9, 4.8, 5.0, 6.1, 7.8,
-        9.7, 9.5, 10.0, 8.7, 10.8
+        2.3, 2.0, 3.6, 3.2, 3.2, 4.9, 4.8, 5.2, 6.3, 7.8,
+        9.7, 9.5, 10.0, 8.7, 10.8, 12.9
     ]
 
     lazy var verticalBarTop: [CGFloat] = [
-        Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, 1.9, 2.4, horizontalBarCenter[1] + Constants.barRadius, 3.1, 3.1, horizontalBarCenter[4] + Constants.barRadius,
-        horizontalBarCenter[4] + Constants.barRadius, 3.3, 3.9, 5.0, horizontalBarCenter[6] - Constants.barRadius, 4.8, 5.3, 7.4, 7.4, 7.1,
-        7.1, 6.1, 7.1, 6.5, horizontalBarCenter[10] - Constants.barRadius, 8.4, 8.6, 7.9, 11.1, horizontalBarCenter[14] - Constants.barRadius,
-        10.6, horizontalBarCenter[12] - Constants.barRadius, 13.1, 12.1, 12.5
+        Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, 2.1, 3.0, horizontalBarCenter[1] + Constants.barRadius, 3.2, 3.1, horizontalBarCenter[4] + Constants.barRadius,
+        horizontalBarCenter[4] + Constants.barRadius, 3.1, 3.9, 4.9, horizontalBarCenter[6] - Constants.barRadius, 5.0, 5.3, 7.4, 7.4, 7.1,
+        7.1, 6.1, 7.1, 6.4, horizontalBarCenter[10] - Constants.barRadius, 8.4, 8.8, 8.0, 11.2, horizontalBarCenter[14] - Constants.barRadius,
+        10.6, horizontalBarCenter[12] - Constants.barRadius, 13.3, 12.1, 12.5
     ]
     
     lazy var verticalBarBottom: [CGFloat] = [
-        1.7, 7.4, 1.7, 1.8, 2.8, 3.4, 3.3, horizontalBarCenter[6] + Constants.barRadius, 4.0, 3.8,
-        6.8, 4.2, horizontalBarCenter[8] + Constants.barRadius, 5.6, 6.0, 5.8, horizontalBarCenter[13] + Constants.barRadius, 8.6, 8.6, 8.6,
-        8.6, horizontalBarCenter[11] + Constants.barRadius, 8.4, 9.0, 13.0, 10.9, horizontalBarCenter[12] + Constants.barRadius, 11.5, 12.1, 13.1,
-        13.1, 13.4, 14.0, 13.3, 13.5
+        1.9, 7.3, 1.7, 1.8, 3.1, 3.9, 3.4, horizontalBarCenter[6] + Constants.barRadius, 4.0, 4.1,
+        6.9, 4.2, horizontalBarCenter[8] + Constants.barRadius, 5.6, 6.0, 6.0, horizontalBarCenter[13] + Constants.barRadius, 8.6, 8.6, 8.6,
+        8.6, horizontalBarCenter[11] + Constants.barRadius, 8.4, 8.9, 13.0, 10.9, horizontalBarCenter[12] + Constants.barRadius, 11.4, 12.2, 13.1,
+        13.1, 13.2, Constants.boardHeight - Constants.edgeWidth, 13.3, 13.2
     ]
     
     lazy var horizontalBarLeft: [CGFloat] = [
-        Constants.edgeWidth, verticalBarCenter[6] - Constants.barRadius, 1.8, verticalBarCenter[1] + Constants.barRadius, verticalBarCenter[9] - Constants.barRadius, Constants.edgeWidth, verticalBarCenter[14] + Constants.barRadius, verticalBarCenter[1] + Constants.barRadius, 1.6, 11.4,
-        1.5, verticalBarCenter[21] + Constants.barRadius, verticalBarCenter[26] + Constants.barRadius, verticalBarCenter[16] + Constants.barRadius, verticalBarCenter[29] + Constants.barRadius
+        Constants.edgeWidth, verticalBarCenter[6] - Constants.barRadius, 1.7, verticalBarCenter[1] + Constants.barRadius, verticalBarCenter[9] - Constants.barRadius, Constants.edgeWidth, verticalBarCenter[14] + Constants.barRadius, verticalBarCenter[1] + Constants.barRadius, 1.7, 11.0,
+        1.7, verticalBarCenter[21] + Constants.barRadius, verticalBarCenter[26] + Constants.barRadius, verticalBarCenter[16] + Constants.barRadius, verticalBarCenter[29] + Constants.barRadius, 9.8
     ]
 
     lazy var horizontalBarRight: [CGFloat] = [
-        1.6, verticalBarCenter[1] - Constants.barRadius, 2.1, 10.8, verticalBarCenter[10] + Constants.barRadius, 1.7, verticalBarCenter[7] - Constants.barRadius, 12.3, verticalBarCenter[12] - Constants.barRadius, verticalBarCenter[23] - Constants.barRadius,
-        verticalBarCenter[24] - Constants.barRadius, 8.5, verticalBarCenter[31] - Constants.barRadius, Constants.boardWidth - Constants.edgeWidth, 7.0
+        1.6, verticalBarCenter[1] - Constants.barRadius, 2.1, 11.0, verticalBarCenter[10] + Constants.barRadius, 1.8, verticalBarCenter[7] - Constants.barRadius, 12.3, verticalBarCenter[12] - Constants.barRadius, verticalBarCenter[23] - Constants.barRadius,
+        verticalBarCenter[24] - Constants.barRadius, 8.5, verticalBarCenter[31] - Constants.barRadius, Constants.boardWidth - Constants.edgeWidth, 7.0, 11.1
     ]
 
     // 2D array of board locations with 0.1 resolution (origin at upper left corner)
