@@ -11,16 +11,19 @@
 //  The board was "unwrapped", painted, and exported to Xcode with the help of this page:
 //    https://emily-45402.medium.com/building-3d-assets-in-blender-for-ios-developers-c47535755f18
 //
+//    *** Warning ***    Accept the default unwrapping.  Manually marking the seams causes all kinds of distortion.
+//
 //  I determined the board dimensions and hole locations in Photoshop using image file Board.psd
 //  I used inches from Photoshop directly as meters in Blender
-//  Board dimension: X = 16.9 m, Y = 14.9 m, Z = 0.1 m
-//  I cut holes using a cylinder with dimensions: X = 0.8 m, Y = 0.8 m , Z = 2 m
-//  To UV Unwrapped the board, I used the circumference of the upper and lower side of the holes, and one line
-//    connecting upper to lower side as seams, as well as the edges and three lower sides of the board
+//  Board dimension: X = 13.8 m, Y = 10.9 m, Z = 0.1 m
+//  I cut holes using a cylinder with dimensions: X = 0.62 m, Y = 0.62 m , Z = 2 m
 //
 //  Xcode
 //  -----
-//  I converted board.dae to board.scn using Xcode:  board.dae | Editor | Convert to ScneneKit file format
+//  After adding board.dae and "board image.png" to Xcode, select the board in board.dae
+//    Select: Material inspector | diffuse | "board image.png"
+//    Enter: Node inspector | Name | board
+//    Select: Editor (top menu) | Convert to ScneneKit file format
 //  The hole center locations are the inch measurements directly from Photoshop
 //  I tweaked the hole locations slightly, by uncommenting the call to createHolePanelAt in func createBoardPanels
 //    and lining up the square panels with the holes
@@ -42,20 +45,20 @@ import SceneKit
 import CoreMotion
 
 struct Constants {
-    static let cameraDistance: CGFloat = 13.4  // portrait: 22.3
-    static let boardWidth: CGFloat = 16.9
-    static let boardHeight: CGFloat = 14.9
+    static let cameraDistance: CGFloat = 10.0
+    static let boardWidth: CGFloat = 13.8
+    static let boardHeight: CGFloat = 10.9
     static let boardThickness: CGFloat = 0.1
-    static let edgeThickness: CGFloat = 0.36
-    static let edgeWidth: CGFloat = 0.8
-    static let marbleRadius: CGFloat = 0.32
-    static let holeRadius: CGFloat = 0.434
-    static let barRadius: CGFloat = 0.18
-    static let panelColor = UIColor.clear
-    static let boardColor = #colorLiteral(red: 0.9764705896, green: 0.850980401, blue: 0.5490196347, alpha: 1)  // used for edges and walls (actual board color is in "board image.png"
-    static let startingPosition = SCNVector3(x: 0.7,
+    static let edgeThickness: CGFloat = 0.28  // raised edge to keep marble on board
+    static let edgeWidth: CGFloat = 0.40
+    static let marbleRadius: CGFloat = 0.23  // ~0.73 * holeRadius
+    static let holeRadius: CGFloat = 0.40
+    static let barRadius: CGFloat = 0.14
+    static let panelColor = UIColor.clear  // use .blue for debugging
+    static let boardColor = #colorLiteral(red: 0.9764705896, green: 0.850980401, blue: 0.5490196347, alpha: 1)  // used for edges and walls (actual board color is in "board image.png")
+    static let startingPosition = SCNVector3(x: 0.6,
                                              y: Float(Constants.boardThickness / 2 + Constants.marbleRadius),
-                                             z: Float(-Constants.boardHeight / 2 + Constants.edgeWidth + 1.5 * Constants.marbleRadius))
+                                             z: Float(-Constants.boardHeight / 2 + Constants.edgeWidth + 1.7 * Constants.marbleRadius))
 }
 
 class GameViewController: UIViewController {
@@ -67,53 +70,53 @@ class GameViewController: UIViewController {
     
     // hole position relative to upper left corner of board
     let holeCentersX: [CGFloat] = [
-        1.4, 10.4, 12.9, 14.3, 15.3, 9.1, 5.0, 2.5, 3.8, 13.1,
-        10.4, 5.0, 6.5, 7.7, 10.6, 14.3, 13.1, 3.8, 11.8, 5.1,
-        9.2, 1.3, 3.8, 15.1, 6.4, 5.1, 10.2, 2.4, 14.3, 13.1,
-        9.1, 1.2, 3.7, 10.4, 15.2, 7.8, 2.4, 5.1, 14.3, 10.4
+        1.0, 2.0, 2.9, 4.1, 7.4, 8.6, 10.8, 12.0, 13.0, 4.1,
+        5.2, 6.3, 8.6, 10.8, 8.5, 9.6, 10.8, 11.9, 0.9, 2.9,
+        4.0, 7.3, 0.9, 1.8, 2.9, 1.8, 2.9, 4.0, 5.1, 4.0,
+        6.1, 7.3, 8.4, 8.5, 8.5, 10.7, 11.9, 12.8, 11.9, 12.9
     ]
     let holeCentersZ: [CGFloat] = [
-        1.7, 1.7, 1.7, 1.7, 2.4, 2.8, 3.4, 3.6, 3.6, 4.3,
-        4.4, 5.3, 5.6, 5.6, 5.9, 6.2, 6.7, 6.9, 7.1, 7.7,
-        7.8, 8.0, 9.1, 9.3, 10.1, 10.2, 10.2, 10.5, 10.8, 11.0,
-        11.1, 11.6, 11.9, 12.2, 12.3, 12.5, 12.7, 13.6, 13.6, 13.6
+        0.9, 2.3, 2.2, 2.2, 1.8, 0.9, 0.9, 0.9, 1.5, 3.7,
+        3.8, 3.8, 2.9, 2.6, 4.1, 4.9, 4.7, 4.2, 5.7, 4.8,
+        5.5, 5.5, 8.5, 7.6, 6.7, 9.4, 8.8, 7.5, 7.3, 10.0,
+        9.2, 8.1, 7.3, 8.9, 10.1, 7.9, 7.8, 6.8, 10.0, 8.8
     ]
     
     // bar end points relative to upper left corner of board
     let verticalBarCenter: [CGFloat] = [
-        4.4, 9.7, 13.7, 15.0, 3.1, 4.4, 5.8, 7.0, 8.5, 12.5,
-        13.8, 15.0, 3.2, 4.4, 5.8, 8.5, 15.0, 1.9, 3.1, 4.4,
-        5.9, 7.1, 8.5, 12.5, 3.1, 9.6, 11.0, 13.7, 4.4, 5.8,
-        8.4, 12.4, 4.4, 7.0, 13.6
+        3.55, 7.9, 11.4, 12.6, 2.4, 3.55, 4.7, 5.8, 6.9, 10.2,
+        11.3, 12.4, 2.4, 3.55, 4.7, 6.9, 12.4, 1.5, 2.5, 3.5,
+        4.6, 5.7, 6.8, 10.2, 2.4, 7.8, 9.0, 11.2, 3.5, 4.5,
+        6.7, 10.1, 3.5, 5.6, 11.3
     ]
     
     let horizontalBarCenter: [CGFloat] = [
-        2.3, 2.0, 3.6, 3.2, 3.2, 4.9, 4.8, 5.2, 6.3, 7.8,
-        9.7, 9.5, 10.0, 8.7, 10.8, 12.9
+        1.4, 1.3, 2.3, 2.0, 2.0, 3.3, 3.3, 3.5, 4.3, 5.4,
+        7.0, 6.8, 7.4, 6.2, 7.9, 9.5
     ]
 
     lazy var verticalBarTop: [CGFloat] = [
-        Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, 2.1, 3.0, horizontalBarCenter[1] + Constants.barRadius, 3.2, 3.1, horizontalBarCenter[4] + Constants.barRadius,
-        horizontalBarCenter[4] + Constants.barRadius, 3.1, 3.9, 4.9, horizontalBarCenter[6] - Constants.barRadius, 5.0, 5.3, 7.4, 7.4, 7.1,
-        7.1, 6.1, 7.1, 6.4, horizontalBarCenter[10] - Constants.barRadius, 8.4, 8.8, 8.0, 11.2, horizontalBarCenter[14] - Constants.barRadius,
-        10.6, horizontalBarCenter[12] - Constants.barRadius, 13.3, 12.1, 12.5
+        Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, 1.3, 1.9, horizontalBarCenter[1] + Constants.barRadius, 2.2, 2.0, horizontalBarCenter[4] + Constants.barRadius,
+        horizontalBarCenter[4] + Constants.barRadius, 1.9, 2.7, 3.2, horizontalBarCenter[6] - Constants.barRadius, 3.4, 3.6, 5.1, 5.1, 5.0,
+        5.0, 4.2, 5.0, 4.4, horizontalBarCenter[10] - Constants.barRadius, 5.9, 6.2, 5.7, 8.3, horizontalBarCenter[14] - Constants.barRadius,
+        7.8, horizontalBarCenter[12] - Constants.barRadius, 9.8, 8.8, 9.1
     ]
     
     lazy var verticalBarBottom: [CGFloat] = [
-        1.9, 7.3, 1.7, 1.8, 3.1, 3.9, 3.4, horizontalBarCenter[6] + Constants.barRadius, 4.0, 4.1,
-        6.9, 4.2, horizontalBarCenter[8] + Constants.barRadius, 5.6, 6.0, 6.0, horizontalBarCenter[13] + Constants.barRadius, 8.6, 8.6, 8.6,
-        8.6, horizontalBarCenter[11] + Constants.barRadius, 8.4, 8.9, 13.0, 10.9, horizontalBarCenter[12] + Constants.barRadius, 11.4, 12.2, 13.1,
-        13.1, 13.2, Constants.boardHeight - Constants.edgeWidth, 13.3, 13.2
+        1.2, 5.2, 1.0, 1.0, 1.9, 2.5, 2.2, horizontalBarCenter[6] + Constants.barRadius, 2.6, 2.7,
+        4.8, 2.9, horizontalBarCenter[8] + Constants.barRadius, 3.9, 4.1, 4.2, horizontalBarCenter[13] + Constants.barRadius, 6.1, 6.1, 6.3,
+        6.3, horizontalBarCenter[11] + Constants.barRadius, 5.9, 6.3, 9.7, 7.8, horizontalBarCenter[12] + Constants.barRadius, 8.3, 9.1, 9.6,
+        9.6, 9.6, Constants.boardHeight - Constants.edgeWidth, 9.7, 9.7
     ]
     
     lazy var horizontalBarLeft: [CGFloat] = [
-        Constants.edgeWidth, verticalBarCenter[6] - Constants.barRadius, 1.7, verticalBarCenter[1] + Constants.barRadius, verticalBarCenter[9] - Constants.barRadius, Constants.edgeWidth, verticalBarCenter[14] + Constants.barRadius, verticalBarCenter[1] + Constants.barRadius, 1.7, 11.0,
-        1.7, verticalBarCenter[21] + Constants.barRadius, verticalBarCenter[26] + Constants.barRadius, verticalBarCenter[16] + Constants.barRadius, verticalBarCenter[29] + Constants.barRadius, 9.8
+        Constants.edgeWidth, verticalBarCenter[6] - Constants.barRadius, 1.3, verticalBarCenter[1] + Constants.barRadius, verticalBarCenter[9] - Constants.barRadius, Constants.edgeWidth, verticalBarCenter[14] + Constants.barRadius, verticalBarCenter[1] + Constants.barRadius, 1.2, 9.0,
+        1.2, verticalBarCenter[21] + Constants.barRadius, verticalBarCenter[26] + Constants.barRadius, verticalBarCenter[16] + Constants.barRadius, verticalBarCenter[29] + Constants.barRadius, 7.7
     ]
 
     lazy var horizontalBarRight: [CGFloat] = [
-        1.6, verticalBarCenter[1] - Constants.barRadius, 2.1, 11.0, verticalBarCenter[10] + Constants.barRadius, 1.8, verticalBarCenter[7] - Constants.barRadius, 12.3, verticalBarCenter[12] - Constants.barRadius, verticalBarCenter[23] - Constants.barRadius,
-        verticalBarCenter[24] - Constants.barRadius, 8.5, verticalBarCenter[31] - Constants.barRadius, Constants.boardWidth - Constants.edgeWidth, 7.0, 11.1
+        1.1, verticalBarCenter[1] - Constants.barRadius, 1.6, 9.1, verticalBarCenter[10] + Constants.barRadius, 1.4, verticalBarCenter[7] - Constants.barRadius, 10.1, verticalBarCenter[12] - Constants.barRadius, verticalBarCenter[23] - Constants.barRadius,
+        verticalBarCenter[24] - Constants.barRadius, 6.9, verticalBarCenter[31] - Constants.barRadius, Constants.boardWidth - Constants.edgeWidth, 5.6, 9.1
     ]
 
     // 2D array of board locations with 0.1 resolution (origin at upper left corner)
@@ -238,6 +241,16 @@ class GameViewController: UIViewController {
         }
     }
     
+    private func printTakenArray() {
+        print()
+        for z in 0..<60 {
+            print()
+            for x in 0..<80 {
+                print(taken[z][x] ? "x" : ".", terminator: "")
+            }
+        }
+    }
+    
     // move from left to right, top to bottom, to find first open location
     private func nextOpening() -> (z: Int, x: Int)? {
         for z in 0..<taken.count {
@@ -282,7 +295,7 @@ class GameViewController: UIViewController {
         }
     }
 
-    // this was used during development/debugging
+    // use for development/debugging
     private func createHolePanelAt(centerX: CGFloat, centerZ: CGFloat) {  // origin at center of board
         let panel = SCNBox(width: 2 * Constants.holeRadius, height: Constants.boardThickness, length: 2 * Constants.holeRadius, chamferRadius: 0)
         panel.firstMaterial?.diffuse.contents = UIColor(displayP3Red: 0.8, green: 0.8, blue: 0.8, alpha: 0.5)
