@@ -4,6 +4,12 @@
 //
 //  Created by Phil Stern on 5/30/21.
 //
+//  To force landscape on iPad, go to: TARGETS | General | Deployment Info
+//  - Uncheck: iPhone (leave iPad checked)...
+//  - Uncheck: Portrait, Upside Down, and Landscape Right
+//  - Check: Requires full screen (or you will get error saying all orientations must be supported when submitting app for review)
+//  - Recheck: iPhone
+//
 //  Blender
 //  -------
 //  Board with holes was created in Blender (file: "labyrinth board.blend") with the help of this video:
@@ -121,21 +127,9 @@ class GameViewController: UIViewController {
 
     // 2D array of board locations with 0.1 resolution (origin at upper left corner)
     var taken = Array(repeating: Array(repeating: false, count: Int(Constants.boardWidth * 10)), count: Int(Constants.boardHeight * 10))  // taken[z][x]
-
-    override var shouldAutorotate: Bool {
-        return true
-    }
     
     override var prefersStatusBarHidden: Bool {
         return true
-    }
-    
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return .allButUpsideDown
-        } else {
-            return .all
-        }
     }
     
     // MARK: - Lifecycle
@@ -355,8 +349,8 @@ class GameViewController: UIViewController {
         let bar = SCNCylinder(radius: Constants.barRadius, height: bottom - top)
         bar.firstMaterial?.diffuse.contents = Constants.boardColor
         let barNode = SCNNode(geometry: bar)
-        barNode.position = SCNVector3(x: Float(centerX), y: Float(Constants.boardThickness / 2 + Constants.barRadius), z: Float(top + bottom) / 2)
         barNode.transform = SCNMatrix4Rotate(barNode.transform, .pi/2, 1, 0, 0)
+        barNode.position = SCNVector3(x: Float(centerX), y: Float(Constants.boardThickness / 2 + Constants.barRadius), z: Float(top + bottom) / 2)
         barNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         boardNode.addChildNode(barNode)
     }
@@ -365,8 +359,8 @@ class GameViewController: UIViewController {
         let bar = SCNCylinder(radius: Constants.barRadius, height: right - left)
         bar.firstMaterial?.diffuse.contents = Constants.boardColor
         let barNode = SCNNode(geometry: bar)
-        barNode.position = SCNVector3(x: Float(left + right) / 2, y: Float(Constants.boardThickness / 2 + Constants.barRadius), z: Float(centerZ))
         barNode.transform = SCNMatrix4Rotate(barNode.transform, .pi/2, 0, 0, 1)
+        barNode.position = SCNVector3(x: Float(left + right) / 2, y: Float(Constants.boardThickness / 2 + Constants.barRadius), z: Float(centerZ))
         barNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         boardNode.addChildNode(barNode)
     }
