@@ -153,7 +153,6 @@ class GameViewController: UIViewController {
         cameraNode.camera = SCNCamera()
         scnScene.rootNode.addChildNode(cameraNode)
         rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: -.pi/2)  // top view
-//        rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: -.pi/3)  // sciew view
 
         let lightNode = SCNNode()
         lightNode.light = SCNLight()
@@ -169,6 +168,7 @@ class GameViewController: UIViewController {
         
         hud = Hud(size: view.bounds.size)
         hud.setup()
+        hud.bestTime = UserDefaults.standard.double(forKey: "time")  // 0, if not found
         scnView.overlaySKScene = hud
 
         let board = SCNBox(width: Constants.boardWidth,
@@ -404,6 +404,10 @@ class GameViewController: UIViewController {
         let marbleZ = CGFloat(marbleNode.presentation.position.z) + Constants.boardHeight / 2
         if marbleX > verticalBarCenter[16] && marbleZ > horizontalBarCenter[13] - 1 && marbleZ < horizontalBarCenter[13] {
             timerRunning = false
+            if hud.raceTime < hud.bestTime || hud.bestTime == 0.0 {
+                UserDefaults.standard.set(hud.raceTime, forKey: "time")
+                hud.bestTime = hud.raceTime
+            }
         }
     }
 }

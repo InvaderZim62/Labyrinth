@@ -15,14 +15,29 @@ class Hud: SKScene {
             raceTimeLabel.text = minDecimalSecFromSeconds(raceTime)
         }
     }
-    
+
+    var bestTime = 0.0 {
+        didSet {
+            bestTimeLabel.text = "Best Time: \(minDecimalSecFromSeconds(bestTime))"
+        }
+    }
+
     let raceTimeLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+    let bestTimeLabel = SKLabelNode(fontNamed: "Menlo-Bold")
 
     func setup() {
-        raceTimeLabel.position = CGPoint(x: 0.5 * frame.width, y: 0.957 * frame.height)  // center top
-        raceTimeLabel.fontSize = frame.height / 32
+        let fontSize = max(frame.height / 34, 14)
+        let upperEdge = 0.955 * frame.height
+        
+        raceTimeLabel.position = CGPoint(x: 0.50 * frame.width, y: upperEdge)
+        raceTimeLabel.fontSize = fontSize
         addChild(raceTimeLabel)
         raceTime = 0.0
+        
+        bestTimeLabel.position = CGPoint(x: 0.74 * frame.width, y: upperEdge)
+        bestTimeLabel.fontSize = fontSize
+        addChild(bestTimeLabel)
+        bestTime = 0.0
     }
     
     private func minDecimalSecFromSeconds(_ seconds: Double) -> String {
