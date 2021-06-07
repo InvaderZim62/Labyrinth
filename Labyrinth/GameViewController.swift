@@ -62,7 +62,7 @@ struct Constants {
     static let barRadius: CGFloat = 0.14
     static let panelColor = UIColor.clear  // use .blue for debugging
     static let boardColor = #colorLiteral(red: 0.9764705896, green: 0.850980401, blue: 0.5490196347, alpha: 1)  // used for edges and walls (actual board color is in "board image.png")
-    static let startingPosition = SCNVector3(x: 0.6,
+    static let startingPosition = SCNVector3(x: 0.6,  // origin at center of board
                                              y: Float(Constants.boardThickness / 2 + Constants.marbleRadius),
                                              z: Float(-Constants.boardHeight / 2 + Constants.edgeWidth + 1.7 * Constants.marbleRadius))
 }
@@ -72,7 +72,10 @@ class GameViewController: UIViewController {
     var scnScene: SCNScene!
     var boardNode: SCNNode!
     var marbleNode = SCNNode()
+    var hud = Hud()
     let motionManager = CMMotionManager()  // needed for accelerometers
+    var timerRunning = false
+    var startTime = 0.0
     
     // hole position relative to upper left corner of board
     let holeCentersX: [CGFloat] = [
@@ -145,7 +148,7 @@ class GameViewController: UIViewController {
 
         scnScene = SCNScene()
         scnView.scene = scnScene
-        
+
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
         scnScene.rootNode.addChildNode(cameraNode)
@@ -163,6 +166,10 @@ class GameViewController: UIViewController {
         ambientLightNode.light!.type = .ambient
         ambientLightNode.light!.color = UIColor.darkGray
         scnScene.rootNode.addChildNode(ambientLightNode)
+        
+        hud = Hud(size: view.bounds.size)
+        hud.setup()
+        scnView.overlaySKScene = hud
 
         let board = SCNBox(width: Constants.boardWidth,
                            height: Constants.boardThickness,
@@ -368,16 +375,35 @@ class GameViewController: UIViewController {
     // MARK: - Miscellaneous
 
     // rotate camera around board x-axis, while continuing to point at board center
-    private func rotateCameraAroundBoardCenter(cameraNode: SCNNode, deltaAngle: CGFloat) {
+    private func rotateCameraAroundBoardCenter(cameraNode: SCNNode, deltaAngle: CGFloat) {  // deltaAngle in radians
         cameraNode.transform = SCNMatrix4Rotate(cameraNode.transform, Float(deltaAngle), 1, 0, 0)
         let cameraAngle = CGFloat(cameraNode.eulerAngles.x)
         cameraNode.position = SCNVector3(0, -Constants.cameraDistance * sin(cameraAngle), Constants.cameraDistance * cos(cameraAngle))
     }
     
+    // MARK: - Timer Functions
+    
     private func restartMarbleIfFellThroughHole() {
         if marbleNode.presentation.position.y < -10 {
             marbleNode.position = Constants.startingPosition
             marbleNode.physicsBody?.velocity = SCNVector3(x: 0, y: 0, z: 0)
+            timerRunning = false
+            hud.raceTime = 0.0
+        }
+    }
+    
+    private func checkRaceStart(time: TimeInterval) {
+        if marbleNode.presentation.position.x < Constants.startingPosition.x - 1 {
+            timerRunning = true
+            startTime = time
+        }
+    }
+    
+    private func checkRaceFinish() {
+        let marbleX = CGFloat(marbleNode.presentation.position.x) + Constants.boardWidth / 2  // origin at upper left corner of board
+        let marbleZ = CGFloat(marbleNode.presentation.position.z) + Constants.boardHeight / 2
+        if marbleX > verticalBarCenter[16] && marbleZ > horizontalBarCenter[13] - 1 && marbleZ < horizontalBarCenter[13] {
+            timerRunning = false
         }
     }
 }
@@ -386,7 +412,12 @@ class GameViewController: UIViewController {
 
 extension GameViewController: SCNSceneRendererDelegate {  // set scnView.delegate = self
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        if timerRunning {
+            hud.raceTime = time - startTime
+            checkRaceFinish()
+        } else {
+            checkRaceStart(time: time)
+        }
         restartMarbleIfFellThroughHole()
     }
 }
-
