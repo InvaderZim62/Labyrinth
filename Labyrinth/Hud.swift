@@ -18,7 +18,7 @@ class Hud: SKScene {
 
     var bestTime = 0.0 {
         didSet {
-            bestTimeLabel.text = "Best Time: \(minDecimalSecFromSeconds(bestTime))"
+            bestTimeLabel.text = "Best Time \(minDecimalSecFromSeconds(bestTime))"
         }
     }
 
@@ -43,6 +43,6 @@ class Hud: SKScene {
     private func minDecimalSecFromSeconds(_ seconds: Double) -> String {
         let min = Int(seconds / 60)
         let sec = seconds - Double(min * 60)
-        return seconds > 60 ? String(format: "%2d:%0.1f", min, sec) : String(format: "%.1f", sec)
+        return seconds > 60 ? String(format: "%d:%0.1f", min, sec) : String(format: "%.1f", sec)
     }
 }
