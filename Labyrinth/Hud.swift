@@ -4,6 +4,8 @@
 //
 //  Created by Phil Stern on 6/7/21.
 //
+//  Hud has two labels and no buttons (see Tetris and Domino Draw for examples of Huds with buttons).
+//
 
 import Foundation
 import SpriteKit

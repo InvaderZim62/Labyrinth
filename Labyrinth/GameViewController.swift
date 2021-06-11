@@ -48,7 +48,7 @@
 import UIKit
 import QuartzCore
 import SceneKit
-import CoreMotion
+import CoreMotion  // needed for accelerometers
 
 struct Constants {
     static let cameraDistance: CGFloat = 10.0
@@ -91,7 +91,7 @@ class GameViewController: UIViewController {
         9.2, 8.1, 7.3, 8.9, 10.1, 7.9, 7.8, 6.8, 10.0, 8.8
     ]
     
-    // bar end points relative to upper left corner of board
+    // bar centerlines relative to upper left corner of board
     let verticalBarCenter: [CGFloat] = [
         3.55, 7.9, 11.4, 12.6, 2.4, 3.55, 4.7, 5.8, 6.9, 10.2,
         11.3, 12.4, 2.4, 3.55, 4.7, 6.9, 12.4, 1.5, 2.5, 3.5,
@@ -104,6 +104,7 @@ class GameViewController: UIViewController {
         7.0, 6.8, 7.4, 6.2, 7.9, 9.5
     ]
 
+    // bar end-points relative to upper left corner of board
     lazy var verticalBarTop: [CGFloat] = [
         Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, Constants.edgeWidth, 1.3, 1.9, horizontalBarCenter[1] + Constants.barRadius, 2.2, 2.0, horizontalBarCenter[4] + Constants.barRadius,
         horizontalBarCenter[4] + Constants.barRadius, 1.9, 2.7, 3.2, horizontalBarCenter[6] - Constants.barRadius, 3.4, 3.6, 5.1, 5.1, 5.0,
@@ -128,7 +129,7 @@ class GameViewController: UIViewController {
         verticalBarCenter[24] - Constants.barRadius, 6.9, verticalBarCenter[31] - Constants.barRadius, Constants.boardWidth - Constants.edgeWidth, 5.6, 9.1
     ]
 
-    // 2D array of board locations with 0.1 resolution (origin at upper left corner)
+    // 2D array of board locations with 0.1 inch resolution (origin at upper left corner)
     var taken = Array(repeating: Array(repeating: false, count: Int(Constants.boardWidth * 10)), count: Int(Constants.boardHeight * 10))  // taken[z][x]
     
     override var prefersStatusBarHidden: Bool {
@@ -242,6 +243,7 @@ class GameViewController: UIViewController {
         }
     }
     
+    // print subset of taken array (for debugging)
     private func printTakenArray() {
         print()
         for z in 0..<60 {
@@ -296,7 +298,8 @@ class GameViewController: UIViewController {
         }
     }
 
-    // use for development/debugging
+    // use for development/debugging, to see if hole centers align with "board image.png"
+    // and if board panels butt up against them (change Constants.panelColor to blue)
     private func createHolePanelAt(centerX: CGFloat, centerZ: CGFloat) {  // origin at center of board
         let panel = SCNBox(width: 2 * Constants.holeRadius, height: Constants.boardThickness, length: 2 * Constants.holeRadius, chamferRadius: 0)
         panel.firstMaterial?.diffuse.contents = UIColor(displayP3Red: 0.8, green: 0.8, blue: 0.8, alpha: 0.5)
@@ -414,7 +417,7 @@ class GameViewController: UIViewController {
 
 // MARK: - Extension
 
-extension GameViewController: SCNSceneRendererDelegate {  // set scnView.delegate = self
+extension GameViewController: SCNSceneRendererDelegate {  // requires setting scnView.delegate = self, above
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         if timerRunning {
             hud.raceTime = time - startTime
