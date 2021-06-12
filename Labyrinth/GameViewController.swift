@@ -51,13 +51,14 @@ import SceneKit
 import CoreMotion  // needed for accelerometers
 
 struct Constants {
+    static let gravity = 20.0  // m/s^2 (boosted for better performance)
     static let cameraDistance: CGFloat = 10.0
     static let boardWidth: CGFloat = 13.8
     static let boardHeight: CGFloat = 10.9
     static let boardThickness: CGFloat = 0.1
     static let edgeThickness: CGFloat = 0.28  // raised edge to keep marble on board
     static let edgeWidth: CGFloat = 0.40
-    static let marbleRadius: CGFloat = 0.23  // ~0.73 * holeRadius
+    static let marbleRadius: CGFloat = 0.23
     static let holeRadius: CGFloat = 0.40
     static let barRadius: CGFloat = 0.14
     static let panelColor = UIColor.clear  // use .blue for debugging
@@ -80,15 +81,15 @@ class GameViewController: UIViewController {
     // hole position relative to upper left corner of board
     let holeCentersX: [CGFloat] = [
         1.0, 2.0, 2.9, 4.1, 7.4, 8.6, 10.8, 12.0, 13.0, 4.1,
-        5.2, 6.3, 8.6, 10.8, 8.5, 9.6, 10.8, 11.9, 0.9, 2.9,
-        4.0, 7.3, 0.9, 1.8, 2.9, 1.8, 2.9, 4.0, 5.1, 4.0,
+        5.2, 6.3, 8.6, 10.8, 8.5, 9.6, 10.8, 11.9, 0.8, 2.9,
+        4.0, 7.4, 0.8, 1.8, 2.9, 1.8, 2.9, 4.0, 5.1, 4.0,
         6.1, 7.3, 8.4, 8.5, 8.5, 10.7, 11.9, 12.8, 11.9, 12.9
     ]
     let holeCentersZ: [CGFloat] = [
         0.9, 2.3, 2.2, 2.2, 1.8, 0.9, 0.9, 0.9, 1.5, 3.7,
         3.8, 3.8, 2.9, 2.6, 4.1, 4.9, 4.7, 4.2, 5.7, 4.8,
         5.5, 5.5, 8.5, 7.6, 6.7, 9.4, 8.8, 7.5, 7.3, 10.0,
-        9.2, 8.1, 7.3, 8.9, 10.1, 7.9, 7.8, 6.8, 10.0, 8.8
+        9.2, 8.1, 7.3, 8.9, 10.1, 7.9, 7.8, 6.8, 10.1, 8.8
     ]
     
     // bar centerlines relative to upper left corner of board
@@ -208,7 +209,7 @@ class GameViewController: UIViewController {
             motionManager.accelerometerUpdateInterval = 0.1
             motionManager.startAccelerometerUpdates(to: .main) { (data, error) in
                 if let x = data?.acceleration.x, let y = data?.acceleration.y, let z = data?.acceleration.z {
-                    self.scnScene.physicsWorld.gravity = SCNVector3(x: 9.8 * Float(y), y: 9.8 * Float(z), z: 9.8 * Float(x))
+                    self.scnScene.physicsWorld.gravity = SCNVector3(x: Float(Constants.gravity * y), y: Float(Constants.gravity * z), z: Float(Constants.gravity * x))
                 }
             }
         }
