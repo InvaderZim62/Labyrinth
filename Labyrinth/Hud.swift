@@ -14,7 +14,7 @@ class Hud: SKScene {
 
     var raceTime = 0.0 {
         didSet {
-            raceTimeLabel.text = minDecimalSecFromSeconds(raceTime)
+            raceTimeLabel.text = "Time \(minDecimalSecFromSeconds(raceTime))"
         }
     }
 
@@ -31,12 +31,12 @@ class Hud: SKScene {
         let fontSize = max(frame.height / 34, 14)
         let upperEdge = 0.955 * frame.height
         
-        raceTimeLabel.position = CGPoint(x: 0.50 * frame.width, y: upperEdge)
+        raceTimeLabel.position = CGPoint(x: frame.width / 2 - 140, y: upperEdge)
         raceTimeLabel.fontSize = fontSize
         addChild(raceTimeLabel)
         raceTime = 0.0
         
-        bestTimeLabel.position = CGPoint(x: 0.74 * frame.width, y: upperEdge)
+        bestTimeLabel.position = CGPoint(x: frame.width / 2 + 110, y: upperEdge)
         bestTimeLabel.fontSize = fontSize
         addChild(bestTimeLabel)
         bestTime = 0.0
