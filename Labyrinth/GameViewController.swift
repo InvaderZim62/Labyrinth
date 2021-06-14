@@ -199,6 +199,8 @@ class GameViewController: UIViewController {
         marbleNode.position = Constants.startingPosition
         marbleNode.physicsBody = SCNPhysicsBody(type: .dynamic, shape: nil)
         boardNode.addChildNode(marbleNode)
+        
+        scnView.prepare(scnScene!, shouldAbortBlock: nil)  // this causes scene to appear right when launch screen clears
     }
 
     override func viewDidAppear(_ animated: Bool) {
