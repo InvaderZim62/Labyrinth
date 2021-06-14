@@ -144,7 +144,7 @@ class GameViewController: UIViewController {
                 
         let scnView = self.view as! SCNView
         scnView.backgroundColor = UIColor.black
-        scnView.allowsCameraControl = true
+        scnView.allowsCameraControl = false
         scnView.showsStatistics = false
         scnView.delegate = self  // needed to call renderer (extension, below)
 
