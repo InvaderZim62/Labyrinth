@@ -45,6 +45,6 @@ class Hud: SKScene {
     private func minDecimalSecFromSeconds(_ seconds: Double) -> String {
         let min = Int(seconds / 60)
         let sec = seconds - Double(min * 60)
-        return seconds > 60 ? String(format: "%d:%0.1f", min, sec) : String(format: "%.1f", sec)
+        return seconds > 60 ? String(format: "%d:%04.1f", min, sec) : String(format: "%.1f", sec)
     }
 }
