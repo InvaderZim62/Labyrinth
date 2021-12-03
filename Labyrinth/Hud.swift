@@ -28,7 +28,7 @@ class Hud: SKScene {
     let bestTimeLabel = SKLabelNode(fontNamed: "Menlo-Bold")
 
     func setup() {
-        let fontSize = max(frame.height / 34, 14)
+        let fontSize = max(frame.height / 34, 13)
         let upperEdge = 0.955 * frame.height
         
         raceTimeLabel.position = CGPoint(x: frame.width / 2 - 140, y: upperEdge)
