@@ -10,6 +10,12 @@
 //  - Check: Requires full screen (or you will get error saying all orientations must be supported when submitting app for review)
 //  - Recheck: iPhone
 //
+//  Device orientations:
+//    In addition to the Device Orientations properties under Targets | General, there may be
+//    left-over/redundant settings in: Targets | Build Settings | Info.plist Values.  I had to
+//    delete the settings labeled: "Supported Interface Orientations (iPhone)", so that the
+//    iPhone would use the settings labeled: "Supported Interface Orientations"
+//
 //  Blender
 //  -------
 //  Board with holes was created in Blender (file: "labyrinth board.blend") with the help of this video:
@@ -61,7 +67,7 @@ struct Constants {
     static let marbleRadius: CGFloat = 0.23
     static let holeRadius: CGFloat = 0.40
     static let barRadius: CGFloat = 0.14
-    static let panelColor = UIColor.clear  // use .blue for debugging
+    static let panelColor = UIColor.clear  // use .blue for debugging (and set boardThickness to 0.2)
     static let boardColor = #colorLiteral(red: 0.9764705896, green: 0.850980401, blue: 0.5490196347, alpha: 1)  // used for edges and walls (actual board color is in "board image.png")
     static let startingPosition = SCNVector3(x: 0.6,  // origin at center of board
                                              y: Float(Constants.boardThickness / 2 + Constants.marbleRadius),
