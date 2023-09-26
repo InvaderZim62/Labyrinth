@@ -14,11 +14,12 @@ get to the finish in the fastest time.
 
 I created the board scene with black trail and holes using [Blender](https://www.blender.org/).
 This mesh node is purely for aesthetics.  It is not given a physics body, since the holes are not
-recognized by the physics engine.  Instead, I create "boardNode" and attached panels, board edges,
+recognized by the physics engine.  Instead, I create "boardNode" and attach panels, board edges,
 and bars with *kinematic* physics bodies to constrain the marble.
 
-To create the panels, I use an algorithm to fit rectangular boxes between "holes", moving from top
-left to bottom right, until the entire board is covered.  Normally, the panels are clear, but this
-is what it looks like if I use different colors.
+To create the panels, I use an algorithm to fit rectangular boxes between the "holes", moving from
+top left to bottom right, until the entire board is covered.  Normally, the panels are clear, but
+this is what it looks like if I use different colors.  Even though the uncovered area around the
+holes is square-shaped, it still looks good when the marble falls through.
 
 ![Labyrinth panels](https://github.com/InvaderZim62/Labyrinth/assets/34785252/c9168296-514a-4a0f-a8e7-c71d99b04212)
