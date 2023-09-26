@@ -19,7 +19,7 @@ and bars with *kinematic* physics bodies to constrain the marble.
 
 To create the panels, I use an algorithm to fit rectangular boxes between the "holes", moving from
 top left to bottom right, until the entire board is covered.  Normally, the panels are clear, but
-this is what it looks like if I use different colors.  Even though the uncovered area around the
-holes is square-shaped, it still looks good when the marble falls through.
+this is what it looks like if I use different colors.  Even though the uncovered areas around the
+holes are square-shaped, it still looks good when the marble falls through.
 
 ![Labyrinth panels](https://github.com/InvaderZim62/Labyrinth/assets/34785252/c9168296-514a-4a0f-a8e7-c71d99b04212)
