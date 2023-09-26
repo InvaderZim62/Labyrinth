@@ -21,4 +21,4 @@ To create the panels, I use an algorithm to fit rectangular boxes between "holes
 left to bottom right, until the entire board is covered.  Normally, the panels are clear, but this
 is what it looks like if I use different colors.
 
-![Labyrinth panels](https://github.com/InvaderZim62/Labyrinth/assets/34785252/45594f2a-e958-41ba-94e2-0a8fc0667020)
+![Labyrinth panels](https://github.com/InvaderZim62/Labyrinth/assets/34785252/c9168296-514a-4a0f-a8e7-c71d99b04212)
