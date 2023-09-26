@@ -13,7 +13,7 @@ get to the finish in the fastest time.
 ## Board With Holes
 
 I created the board scene with black trail and holes using [Blender](https://www.blender.org/).
-This mesh node is purely for aethetics.  It is not given a physics body, since the holes are not
+This mesh node is purely for aesthetics.  It is not given a physics body, since the holes are not
 recognized by the physics engine.  Instead, I create "boardNode" and attached panels, board edges,
 and bars with *kinematic* physics bodies to constrain the marble.
 
