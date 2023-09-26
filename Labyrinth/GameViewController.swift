@@ -32,10 +32,10 @@
 //
 //  Xcode
 //  -----
-//  After adding board.dae and "board image.png" to Xcode, select the board in board.dae
+//  After adding board.dae and "board image.png" to Xcode, select the model in the Scene graph
 //    Select: Material inspector | diffuse | "board image.png"
-//    Enter: Node inspector | Name | board
-//    Select: Editor (top menu) | Convert to ScneneKit file format
+//    Enter: Node inspector | Name: board
+//    Select: Editor (top menu) | Convert to SceneKit file format (.scn)
 //  The hole center locations are the inch measurements directly from Photoshop
 //  I tweaked the hole locations slightly, by uncommenting the call to createHolePanelAt in func createBoardPanels
 //    and lining up the square panels with the holes
@@ -67,7 +67,7 @@ struct Constants {
     static let marbleRadius: CGFloat = 0.23
     static let holeRadius: CGFloat = 0.40
     static let barRadius: CGFloat = 0.14
-    static let panelColor = UIColor.clear  // use .blue for debugging (and set boardThickness to 0.2)
+    static let panelColor = UIColor.clear
     static let boardColor = #colorLiteral(red: 0.9764705896, green: 0.850980401, blue: 0.5490196347, alpha: 1)  // used for edges and walls (actual board color is in "board image.png")
     static let startingPosition = SCNVector3(x: 0.6,  // origin at center of board
                                              y: Float(Constants.boardThickness / 2 + Constants.marbleRadius),
@@ -319,9 +319,14 @@ class GameViewController: UIViewController {
         boardNode.addChildNode(panelNode)
     }
 
+    let debugColors = [#colorLiteral(red: 0.5568627715, green: 0.3529411852, blue: 0.9686274529, alpha: 1), #colorLiteral(red: 0.3647058904, green: 0.06666667014, blue: 0.9686274529, alpha: 1), #colorLiteral(red: 0.2196078449, green: 0.007843137719, blue: 0.8549019694, alpha: 1), #colorLiteral(red: 0.1764705926, green: 0.01176470611, blue: 0.5607843399, alpha: 1), #colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1), #colorLiteral(red: 0.1019607857, green: 0.2784313858, blue: 0.400000006, alpha: 1)]
+    var colorIndex = 0
+
     private func createBoardPanelAt(x1: CGFloat, x2: CGFloat, z1: CGFloat, z2: CGFloat) {  // origin at center of board
         let panel = SCNBox(width: x2 - x1, height: Constants.boardThickness, length: z2 - z1, chamferRadius: 0)
         panel.firstMaterial?.diffuse.contents = Constants.panelColor
+//        panel.firstMaterial?.diffuse.contents = debugColors[colorIndex]  // uncomment these to debug panels (also set Constants.boardThickness = 0.2)
+//        colorIndex = (colorIndex + 1) % debugColors.count
         let panelNode = SCNNode(geometry: panel)
         panelNode.position = SCNVector3(x: Float(x1 + x2) / 2, y: 0, z: Float(z1 + z2) / 2)
         panelNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
