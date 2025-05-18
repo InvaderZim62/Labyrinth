@@ -147,7 +147,9 @@ class GameViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-                
+        
+        // see ShutTheBox or DnDDice for examples of putting all the setup in class Scene
+        
         let scnView = self.view as! SCNView
         scnView.backgroundColor = UIColor.black
         scnView.allowsCameraControl = false
@@ -190,7 +192,7 @@ class GameViewController: UIViewController {
 
         // extract board mesh from .scn file
         let boardScene = SCNScene(named: "art.scnassets/board.scn")!
-        let boardMeshNode = boardScene.rootNode.childNode(withName: "board", recursively: true)!  // board.dae | Node inspector | Identity | Name: board
+        let boardMeshNode = boardScene.rootNode.childNode(withName: "board", recursively: true)!  // board.scn | Node inspector | Identity | Name: board
         boardNode.addChildNode(boardMeshNode)
 
         // cover board with kinematic panels (except for holes)
@@ -233,7 +235,7 @@ class GameViewController: UIViewController {
     private func createBoardPanels() {
         // start by marking square areas covering holes as taken
         for index in holeCentersX.indices {
-//            createHolePanelAt(centerX: holeCentersX[index] - Constants.boardWidth / 2, centerZ: holeCentersZ[index] - Constants.boardHeight / 2)
+//            createHolePanelAt(centerX: holeCentersX[index] - Constants.boardWidth / 2, centerZ: holeCentersZ[index] - Constants.boardHeight / 2)  // for debugging
             updateTakenArrayForHoleAt(centerX: holeCentersX[index], centerZ: holeCentersZ[index])
         }
         // fit panels from upper left corner of open space, to right until encountering an obstacle,
