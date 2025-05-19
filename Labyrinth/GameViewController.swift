@@ -47,8 +47,10 @@
 //        x                 x
 //
 //  Notes:
-//  - only use "board" mesh node from board.scn for aesthetics, since holes aren't recognized by physics body/shape
-//  - created separate boardNode to add mesh, marble, and panels (covering all but holes), since nodes added to mesh node appear squashed
+//  - I created this version after learning how to make the physics body hug the node shape using SCNPhysicsShape.ShapeType.concavePolyhedron,
+//    allowing the ball to fall through the holes.  The original version creates a parallel board out of rectangular boxes ("panels"), covering
+//    everything except the holes.  This version has the drawback of being able to roll over the holes without falling through, if you go
+//    fast enough.  In the original version, the gaps in the panels over the holes are bigger, preventing you from rolling over them.
 //
 
 import UIKit
@@ -83,20 +85,6 @@ class GameViewController: UIViewController {
     let motionManager = CMMotionManager()  // needed for accelerometers
     var timerRunning = false
     var startTime = 0.0
-    
-    // hole position relative to upper left corner of board
-    let holeCentersX: [CGFloat] = [
-        1.0, 2.0, 2.9, 4.1, 7.4, 8.6, 10.8, 12.0, 13.0, 4.1,
-        5.2, 6.3, 8.6, 10.8, 8.5, 9.6, 10.8, 11.9, 0.8, 2.9,
-        4.0, 7.4, 0.8, 1.8, 2.9, 1.8, 2.9, 4.0, 5.1, 4.0,
-        6.1, 7.3, 8.4, 8.5, 8.5, 10.7, 11.9, 12.8, 11.9, 12.9
-    ]
-    let holeCentersZ: [CGFloat] = [
-        0.9, 2.3, 2.2, 2.2, 1.8, 0.9, 0.9, 0.9, 1.5, 3.7,
-        3.8, 3.8, 2.9, 2.6, 4.1, 4.9, 4.7, 4.2, 5.7, 4.8,
-        5.5, 5.5, 8.5, 7.6, 6.7, 9.4, 8.8, 7.5, 7.3, 10.0,
-        9.2, 8.1, 7.3, 8.9, 10.1, 7.9, 7.8, 6.8, 10.1, 8.8
-    ]
     
     // bar centerlines relative to upper left corner of board
     let verticalBarCenter: [CGFloat] = [
@@ -154,6 +142,7 @@ class GameViewController: UIViewController {
         scnView.backgroundColor = UIColor.black
         scnView.allowsCameraControl = false
         scnView.showsStatistics = false
+//        scnView.debugOptions = .showPhysicsShapes  // use for debugging
         scnView.delegate = self  // needed to call renderer (extension, below)
 
         scnScene = SCNScene()
@@ -181,22 +170,7 @@ class GameViewController: UIViewController {
         hud.bestTime = UserDefaults.standard.double(forKey: "time")  // 0, if not found
         scnView.overlaySKScene = hud
 
-        let board = SCNBox(width: Constants.boardWidth,
-                           height: Constants.boardThickness,
-                           length: Constants.boardHeight,
-                           chamferRadius: 0)
-        board.firstMaterial?.diffuse.contents = UIColor.clear
-        boardNode = SCNNode(geometry: board)
-        boardNode.position = SCNVector3(x: 0, y: 0, z: 0)
-        scnScene.rootNode.addChildNode(boardNode)
-
-        // extract board mesh from .scn file
-        let boardScene = SCNScene(named: "art.scnassets/board.scn")!
-        let boardMeshNode = boardScene.rootNode.childNode(withName: "board", recursively: true)!  // board.scn | Node inspector | Identity | Name: board
-        boardNode.addChildNode(boardMeshNode)
-
-        // cover board with kinematic panels (except for holes)
-        createBoardPanels()
+        createBoard()
         createBoardEdges()
         createVerticalBoardBars()
         createHorizontalBoardBars()
@@ -231,108 +205,14 @@ class GameViewController: UIViewController {
     }
     
     // MARK: - Board Creation
-
-    private func createBoardPanels() {
-        // start by marking square areas covering holes as taken
-        for index in holeCentersX.indices {
-//            createHolePanelAt(centerX: holeCentersX[index] - Constants.boardWidth / 2, centerZ: holeCentersZ[index] - Constants.boardHeight / 2)  // for debugging
-            updateTakenArrayForHoleAt(centerX: holeCentersX[index], centerZ: holeCentersZ[index])
-        }
-        // fit panels from upper left corner of open space, to right until encountering an obstacle,
-        // then down until encountering an obstacle, until all space is taken
-        while true {
-            if let upperLeftCorner = nextOpening() {
-                let lowerRightCorner = findLowerRightCornerStartingFrom(upperLeftCorner)
-                updateTakenArrayForPanelFrom(upperLeftCorner, to: lowerRightCorner)
-                createBoardPanelAt(x1: CGFloat(upperLeftCorner.x) / 10 - Constants.boardWidth / 2,  // convert from upper left to board center origin
-                                   x2: CGFloat(lowerRightCorner.x) / 10 - Constants.boardWidth / 2,
-                                   z1: CGFloat(upperLeftCorner.z) / 10 - Constants.boardHeight / 2,
-                                   z2: CGFloat(lowerRightCorner.z) / 10 - Constants.boardHeight / 2)
-            } else {
-                break
-            }
-        }
-    }
     
-    // print subset of taken array (for debugging)
-    private func printTakenArray() {
-        print()
-        for z in 0..<60 {
-            print()
-            for x in 0..<80 {
-                print(taken[z][x] ? "x" : ".", terminator: "")
-            }
-        }
-    }
-    
-    // move from left to right, top to bottom, to find first open location
-    private func nextOpening() -> (z: Int, x: Int)? {
-        for z in 0..<taken.count {
-            for x in 0..<taken[0].count {
-                if !taken[z][x] { return (z, x) }
-            }
-        }
-        return nil
-    }
-
-    private func findLowerRightCornerStartingFrom(_ upperLeftCorner: (z: Int, x: Int)) -> (z: Int, x: Int) {  // origin at upper left corner of board
-        var rightSide = taken[0].count
-        let bottom = taken.count
-        for z in upperLeftCorner.z..<bottom {
-            for x in upperLeftCorner.x..<rightSide {
-                if taken[z][x] {
-                    if z == upperLeftCorner.z {
-                        rightSide = x  // encountering obstacle in first row determines right side of opening
-                    } else {
-                        return (z, rightSide)  // encountering obstacle after first row determines bottom of opening
-                    }
-                    break
-                }
-            }
-        }
-        return (bottom, rightSide)
-    }
-    
-    private func updateTakenArrayForHoleAt(centerX: CGFloat, centerZ: CGFloat) {  // origin at upper left corner of board
-        for x in Int((centerX - Constants.holeRadius) * 10)..<Int((centerX + Constants.holeRadius) * 10) {
-            for z in Int((centerZ - Constants.holeRadius) * 10)..<Int((centerZ + Constants.holeRadius) * 10) {
-                taken[z][x] = true
-            }
-        }
-    }
-    
-    private func updateTakenArrayForPanelFrom(_ upperLeftCorner: (z: Int, x: Int), to lowerRightCorner: (z: Int, x: Int)) {
-        for x in upperLeftCorner.x..<lowerRightCorner.x {
-            for z in upperLeftCorner.z..<lowerRightCorner.z {
-                taken[z][x] = true
-            }
-        }
-    }
-
-    // use for development/debugging, to see if hole centers align with "board image.png"
-    // and if board panels butt up against them (change Constants.panelColor to blue)
-    private func createHolePanelAt(centerX: CGFloat, centerZ: CGFloat) {  // origin at center of board
-        let panel = SCNBox(width: 2 * Constants.holeRadius, height: Constants.boardThickness, length: 2 * Constants.holeRadius, chamferRadius: 0)
-        panel.firstMaterial?.diffuse.contents = UIColor(displayP3Red: 0.8, green: 0.8, blue: 0.8, alpha: 0.5)
-        let panelNode = SCNNode(geometry: panel)
-        panelNode.name = "hole"
-        panelNode.position = SCNVector3(x: Float(centerX), y: 0, z: Float(centerZ))
-        panelNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
-        boardNode.addChildNode(panelNode)
-    }
-
-    let debugColors = [#colorLiteral(red: 0.5568627715, green: 0.3529411852, blue: 0.9686274529, alpha: 1), #colorLiteral(red: 0.3647058904, green: 0.06666667014, blue: 0.9686274529, alpha: 1), #colorLiteral(red: 0.2196078449, green: 0.007843137719, blue: 0.8549019694, alpha: 1), #colorLiteral(red: 0.1764705926, green: 0.01176470611, blue: 0.5607843399, alpha: 1), #colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1), #colorLiteral(red: 0.1019607857, green: 0.2784313858, blue: 0.400000006, alpha: 1)]
-    var colorIndex = 0
-
-    private func createBoardPanelAt(x1: CGFloat, x2: CGFloat, z1: CGFloat, z2: CGFloat) {  // origin at center of board
-        let panel = SCNBox(width: x2 - x1, height: Constants.boardThickness, length: z2 - z1, chamferRadius: 0)
-        panel.firstMaterial?.diffuse.contents = Constants.panelColor
-//        panel.firstMaterial?.diffuse.contents = debugColors[colorIndex]  // uncomment these to debug panels (also set Constants.boardThickness = 0.2)
-//        colorIndex = (colorIndex + 1) % debugColors.count
-        let panelNode = SCNNode(geometry: panel)
-        panelNode.position = SCNVector3(x: Float(x1 + x2) / 2, y: 0, z: Float(z1 + z2) / 2)
-        panelNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
-        boardNode.addChildNode(panelNode)
+    private func createBoard() {
+        let boardScene = SCNScene(named: "art.scnassets/board.scn")!
+        boardNode = boardScene.rootNode.childNode(withName: "board", recursively: true)!  // board.scn | Node inspector | Identity | Name: board
+        boardNode.position = SCNVector3(x: 0, y: 0, z: 0)
+        boardNode.physicsBody = SCNPhysicsBody(type: .kinematic,
+                                               shape: SCNPhysicsShape(node: boardNode, options: [SCNPhysicsShape.Option.type: SCNPhysicsShape.ShapeType.concavePolyhedron]))
+        scnScene.rootNode.addChildNode(boardNode)
     }
     
     private func createBoardEdges() {  // origin at center of board
