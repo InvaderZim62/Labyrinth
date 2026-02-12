@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4A87F1E2266E7A6B00265B01 /* Hud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A87F1E1266E7A6B00265B01 /* Hud.swift */; };
+		4A91BF132F3D7E480024E161 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A91BF122F3D7E480024E161 /* SceneDelegate.swift */; };
 		4AA21C1B2669413500E919DC /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AA21C1A2669413500E919DC /* Launch Screen.storyboard */; };
 		4ADF90F42663EE2E002422B5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADF90F32663EE2E002422B5 /* AppDelegate.swift */; };
 		4ADF90F62663EE2E002422B5 /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = 4ADF90F52663EE2E002422B5 /* art.scnassets */; };
@@ -18,6 +19,7 @@
 
 /* Begin PBXFileReference section */
 		4A87F1E1266E7A6B00265B01 /* Hud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Hud.swift; sourceTree = "<group>"; };
+		4A91BF122F3D7E480024E161 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		4AA21C1A2669413500E919DC /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		4ADF90F02663EE2E002422B5 /* Labyrinth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Labyrinth.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4ADF90F32663EE2E002422B5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -43,6 +45,7 @@
 			isa = PBXGroup;
 			children = (
 				4ADF90F32663EE2E002422B5 /* AppDelegate.swift */,
+				4A91BF122F3D7E480024E161 /* SceneDelegate.swift */,
 				4ADF90FC2663EE2F002422B5 /* Assets.xcassets */,
 				4AA21C1A2669413500E919DC /* Launch Screen.storyboard */,
 			);
@@ -152,6 +155,7 @@
 				4ADF90F82663EE2E002422B5 /* GameViewController.swift in Sources */,
 				4ADF90F42663EE2E002422B5 /* AppDelegate.swift in Sources */,
 				4A87F1E2266E7A6B00265B01 /* Hud.swift in Sources */,
+				4A91BF132F3D7E480024E161 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,7 +297,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 65Z9KA7SHC;
 				INFOPLIST_FILE = Labyrinth/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -313,7 +317,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 65Z9KA7SHC;
 				INFOPLIST_FILE = Labyrinth/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
