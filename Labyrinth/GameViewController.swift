@@ -58,7 +58,7 @@ import CoreMotion  // needed for accelerometers
 
 struct Constants {
     static let gravity = 20.0  // m/s^2 (boosted for better performance)
-    static let cameraDistance: CGFloat = 10.0
+    static let cameraDistance: CGFloat = 20.0
     static let boardWidth: CGFloat = 13.8
     static let boardHeight: CGFloat = 10.9
     static let boardThickness: CGFloat = 0.1
@@ -161,6 +161,7 @@ class GameViewController: UIViewController {
 
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
+        cameraNode.camera?.fieldOfView = 31.0
         scnScene.rootNode.addChildNode(cameraNode)
         rotateCameraAroundBoardCenter(cameraNode: cameraNode, deltaAngle: -.pi/2)  // top view
 
@@ -219,7 +220,7 @@ class GameViewController: UIViewController {
             motionManager.accelerometerUpdateInterval = 0.1
             motionManager.startAccelerometerUpdates(to: .main) { (data, error) in
                 if let x = data?.acceleration.x, let y = data?.acceleration.y, let z = data?.acceleration.z {
-                    self.scnScene.physicsWorld.gravity = SCNVector3(x: Float(Constants.gravity * y), y: Float(Constants.gravity * z), z: Float(Constants.gravity * x))
+                    self.scnScene.physicsWorld.gravity = SCNVector3(x: -Float(Constants.gravity * y), y: Float(Constants.gravity * z), z: -Float(Constants.gravity * x))
                 }
             }
         }
